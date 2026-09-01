@@ -25,6 +25,7 @@
 #include <android/native_window.h>
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_android.h>
+#include <vulkan/vulkan_android.h>
 
 #include <sys/resource.h>
 #include <sys/syscall.h>

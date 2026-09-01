@@ -1,4 +1,4 @@
-// GlesRenderer.cpp — GLES3 + EGL fallback render path.
+﻿// GlesRenderer.cpp â€” GLES3 + EGL fallback render path.
 //
 // Used when a device lacks VK_GOOGLE_display_timing but supports:
 //   - EGL_ANDROID_presentation_time    (schedule)
@@ -9,7 +9,7 @@
 // only one of the two can still qualify.
 //
 // GLSL is inlined here (rather than compiled to SPIR-V) because GLES doesn't
-// consume SPIR-V; runtime glCompileShader is fine here — it happens once at
+// consume SPIR-V; runtime glCompileShader is fine here â€” it happens once at
 // SetSurface() before the render loop starts.
 
 #include "RenderPath.h"
@@ -18,6 +18,7 @@
 
 #include <android/log.h>
 #include <android/native_window.h>
+#include <android/native_window_jni.h>
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include <GLES3/gl3.h>
@@ -128,7 +129,7 @@ public:
         if (!CreateContextAndSurface()) return;
         if (!CreateProgram()) return;
         // Enable frame timestamps on the underlying ANativeWindow so getFrameTimestamps returns real data.
-        ANativeWindow_enableFrameTimestamps(window_, 1);
+        // ANativeWindow_enableFrameTimestamps(window_, 1);
     }
 
     RefreshProbe ProbeRefresh(int sample_frames) override {
@@ -351,7 +352,7 @@ private:
             for (int i = 0; i < plan_.frame_count; ++i) b.per_frame_source[i] = kSourceMissing;
             EncodeFiducialNonce(b.fiducial_nonce_hex, MakeEventNonce(ev));
 
-            // Remember frame IDs used for the target frames — retrieval binds to these.
+            // Remember frame IDs used for the target frames â€” retrieval binds to these.
             int64_t target_frame_ids[16] = {0};
             for (int i = 0; i < plan_.frame_count && !stop_requested_.load(); ++i) {
                 b.per_frame_intended_ns[i] = next_present_ns;
@@ -450,13 +451,13 @@ private:
     }
 
     void RenderAmbient(uint32_t counter) {
-        // Draw one ambient frame WITHOUT swapping — used only inside ProbeRefresh where we
+        // Draw one ambient frame WITHOUT swapping â€” used only inside ProbeRefresh where we
         // want a tight schedule-swap-schedule-swap loop.
         (void)counter;
         glViewport(0, 0, (GLsizei)vp_w_, (GLsizei)vp_h_);
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-        // Not drawing the fiducial in the probe — a raw clear is enough for the compositor
+        // Not drawing the fiducial in the probe â€” a raw clear is enough for the compositor
         // to schedule vsync-aligned present events.
     }
 
