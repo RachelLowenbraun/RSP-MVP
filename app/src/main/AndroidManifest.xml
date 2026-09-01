@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Nothing sensitive is requested. The M0 spike does not touch camera / mic / health. -->
+    <uses-feature android:name="android.hardware.vulkan.version" android:version="0x400003" android:required="false" />
+    <uses-feature android:name="android.hardware.vulkan.compute" android:version="0" android:required="false" />
+
+    <application
+        android:label="RSP M0 Timing"
+        android:allowBackup="false"
+        android:hardwareAccelerated="true"
+        android:supportsRtl="false"
+        android:theme="@style/Theme.RspTiming">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|density|uiMode"
+            android:screenOrientation="portrait"
+            android:showWhenLocked="false"
+            android:turnScreenOn="false"
+            android:launchMode="singleTask">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+    </application>
+
+</manifest>

@@ -1,0 +1,92 @@
+name: Build RSP M0 Android APK
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+      
+    - name: Install NDK
+      run: |
+        echo "y" | sdkmanager --install "ndk;25.1.8937393"
+        echo "y" | sdkmanager --install "cmake;3.22.1"
+        
+    - name: Cache Gradle packages
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+          
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+      
+    - name: Build Release APK
+      run: ./gradlew assembleRelease --stacktrace
+      
+    - name: Sign APK
+      run: |
+        # Generate keystore for signing
+        keytool -genkey -v -keystore release.keystore \
+          -alias rsp -keyalg RSA -keysize 2048 -validity 10000 \
+          -storepass android -keypass android \
+          -dname "CN=RSP M0, OU=Development, O=RSP, L=Test, S=Test, C=US"
+        
+        # Sign APK
+        jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 \
+          -keystore release.keystore -storepass android -keypass android \
+          app/build/outputs/apk/release/app-release-unsigned.apk rsp
+          
+        # Align APK
+        ${ANDROID_HOME}/build-tools/*/zipalign -v 4 \
+          app/build/outputs/apk/release/app-release-unsigned.apk \
+          rsp-m0-timing-spike.apk
+          
+    - name: Upload APK Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: rsp-m0-android-apk
+        path: rsp-m0-timing-spike.apk
+        retention-days: 30
+        
+    - name: Create Release Info
+      run: |
+        echo "# RSP M0 Android Build Info" > build-info.txt
+        echo "" >> build-info.txt
+        echo "**Build Date:** $(date -u)" >> build-info.txt
+        echo "**Commit:** ${{ github.sha }}" >> build-info.txt
+        echo "**APK Size:** $(du -h rsp-m0-timing-spike.apk | cut -f1)" >> build-info.txt
+        echo "" >> build-info.txt
+        echo "## Installation" >> build-info.txt
+        echo "1. Download \`rsp-m0-timing-spike.apk\`" >> build-info.txt
+        echo "2. Enable 'Install from unknown sources' on Android device" >> build-info.txt
+        echo "3. Transfer APK to device and tap to install" >> build-info.txt
+        echo "4. Grant permissions when prompted" >> build-info.txt
+        cat build-info.txt
+        
+    - name: Upload Build Info
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-info
+        path: build-info.txt

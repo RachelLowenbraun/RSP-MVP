@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">RSP M0 Timing</string>
+    <string name="pre_flight_running">Running pre-flight checks…</string>
+    <string name="pre_flight_ok">Pre-flight OK. Ready.</string>
+    <string name="btn_run_33ms_x200">Run 33 ms × 200 events</string>
+    <string name="btn_run_50ms_x200">Run 50 ms × 200 events</string>
+    <string name="btn_run_probe">Refresh-lock probe (300 frames)</string>
+    <string name="btn_stop">Stop</string>
+    <string name="log_path_hint">Log path: %1$s</string>
+    <string name="fail_reason">Pre-flight failed: %1$s</string>
+</resources>
