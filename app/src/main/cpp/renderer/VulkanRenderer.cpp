@@ -1,4 +1,4 @@
-// VulkanRenderer.cpp — primary render path for the M0 timing spike.
+﻿// VulkanRenderer.cpp â€” primary render path for the M0 timing spike.
 //
 // Design goals (in order of importance):
 //   1. Frame-exact target presentation, verifiable by external audit.
@@ -10,7 +10,7 @@
 // Non-goals:
 //   - Pretty content. The stimulus is a full-field grayscale patch.
 //   - Multiple render passes or post-processing.
-//   - Depth buffer, MSAA, HDR — none of it helps timing.
+//   - Depth buffer, MSAA, HDR â€” none of it helps timing.
 //
 // The renderer is single-threaded from Kotlin's perspective. Internally it
 // owns a render thread pinned to THREAD_PRIORITY_URGENT_AUDIO. Only that
@@ -24,6 +24,7 @@
 #include <android/log.h>
 #include <android/native_window.h>
 #include <vulkan/vulkan.h>
+#include <vulkan/vulkan_android.h>
 
 #include <sys/resource.h>
 #include <sys/syscall.h>
@@ -51,16 +52,16 @@
 
 namespace rsp::render {
 
-// Fixed constants for the swapchain layout — kept small, no dynamic knobs.
+// Fixed constants for the swapchain layout â€” kept small, no dynamic knobs.
 constexpr uint32_t kSwapchainImageCountRequested = 3;   // may end up 2 or 3 depending on caps
 constexpr VkFormat kPreferredSurfaceFormat = VK_FORMAT_R8G8B8A8_UNORM;
-constexpr int kMinFutureFrames = 2;  // spec §5.2.2 rule 5
+constexpr int kMinFutureFrames = 2;  // spec Â§5.2.2 rule 5
 
 // Presentation-source codes match the Kotlin bridge.
 constexpr int kSourceVkDisplayTiming = 2;
 constexpr int kSourceMissing = 3;
 
-// Push-constant struct — mirrors the shader PC layout exactly.
+// Push-constant struct â€” mirrors the shader PC layout exactly.
 struct PushConstants {
     uint32_t cells0 = 0;
     uint32_t cells1 = 0;
@@ -127,7 +128,7 @@ public:
         RefreshProbe rp{};
         if (!has_display_timing_ || !swapchain_) return rp;
 
-        // Prefer vkGetRefreshCycleDurationGOOGLE — one call, no rendering.
+        // Prefer vkGetRefreshCycleDurationGOOGLE â€” one call, no rendering.
         VkRefreshCycleDurationGOOGLE cycle{};
         if (dt_fns_.getRefresh(device_, swapchain_, &cycle) == VK_SUCCESS &&
             cycle.refreshDuration > 0) {
@@ -252,7 +253,7 @@ private:
             }
         }
         if (!has_display_timing_) {
-            LOGE("Device does not support VK_GOOGLE_display_timing — this device is not "
+            LOGE("Device does not support VK_GOOGLE_display_timing â€” this device is not "
                  "clinical-tier eligible under Redline Patch 7");
         }
         return true;
@@ -328,7 +329,7 @@ private:
         }
         surface_format_ = chosen;
 
-        // Extent — trust the surface caps.
+        // Extent â€” trust the surface caps.
         swapchain_extent_ = caps.currentExtent;
         if (swapchain_extent_.width == 0xFFFFFFFF) {
             swapchain_extent_.width  = 1080;
@@ -379,7 +380,7 @@ private:
             VK_CHECK(vkCreateImageView(device_, &vci, nullptr, &image_views_[i]));
         }
 
-        // Render pass — one color attachment, no depth.
+        // Render pass â€” one color attachment, no depth.
         VkAttachmentDescription attach{};
         attach.format = chosen.format;
         attach.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -574,7 +575,7 @@ private:
         setpriority(PRIO_PROCESS, static_cast<int>(syscall(SYS_gettid)), -19);
 
         uint32_t global_frame_counter = 0;
-        // Anchor future presentation time. Use CLOCK_MONOTONIC — VK_GOOGLE_display_timing
+        // Anchor future presentation time. Use CLOCK_MONOTONIC â€” VK_GOOGLE_display_timing
         // uses the same monotonic clock domain on Android.
         int64_t now = NowNanos();
         int64_t next_present_ns = now + int64_t(kMinFutureFrames) * frame_period_ns_;
@@ -666,9 +667,9 @@ private:
                                              sem_image_available_[slot],
                                              VK_NULL_HANDLE, &image_index);
         if (acq == VK_ERROR_OUT_OF_DATE_KHR || acq == VK_SUBOPTIMAL_KHR) {
-            // Swapchain change (e.g., refresh drift, orientation) — per Redline Patch 7 rule,
+            // Swapchain change (e.g., refresh drift, orientation) â€” per Redline Patch 7 rule,
             // any refresh drift aborts the block.
-            LOGE("Swapchain out-of-date at acquire (%d) — aborting", (int)acq);
+            LOGE("Swapchain out-of-date at acquire (%d) â€” aborting", (int)acq);
             return false;
         }
         if (acq != VK_SUCCESS) {
@@ -827,7 +828,7 @@ private:
             if (dt > 0) intervals[intervals_n++] = dt;
         }
         if (intervals_n == 0) return 0;
-        // Compute p99 deviation from median by insertion sort (n≤kMaxProbe, in-place).
+        // Compute p99 deviation from median by insertion sort (nâ‰¤kMaxProbe, in-place).
         for (int i = 1; i < intervals_n; ++i) {
             int64_t v = intervals[i];
             int j = i - 1;
