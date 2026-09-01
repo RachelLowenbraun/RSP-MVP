@@ -5,7 +5,6 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
-
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
@@ -14,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "rsp-m0-android"
+rootProject.name = "RSP Timing Spike"
 include(":app")
