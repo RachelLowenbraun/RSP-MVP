@@ -42,19 +42,23 @@ jobs:
 
     - name: Sign APK
       run: |
+        BUILD_TOOLS=$(ls -d ${ANDROID_HOME}/build-tools/*/ | sort -V | tail -n 1)
+
         keytool -genkey -v -keystore release.keystore \
           -alias rsp -keyalg RSA -keysize 2048 -validity 10000 \
           -storepass android -keypass android \
           -dname "CN=RSP, OU=Dev, O=RSP, L=Test, S=Test, C=US"
 
-        jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 \
-          -keystore release.keystore -storepass android -keypass android \
-          app/build/outputs/apk/release/app-release-unsigned.apk rsp
-
-        ${ANDROID_HOME}/build-tools/34.0.0/zipalign -v 4 \
+        "${BUILD_TOOLS}zipalign" -v -p 4 \
           app/build/outputs/apk/release/app-release-unsigned.apk \
-          rsp-timing-spike.apk
+          rsp-timing-spike-aligned.apk
 
+        "${BUILD_TOOLS}apksigner" sign \
+          --ks release.keystore --ks-pass pass:android --key-pass pass:android \
+          --ks-key-alias rsp \
+          --out rsp-timing-spike.apk \
+          rsp-timing-spike-aligned.apk
+          
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
